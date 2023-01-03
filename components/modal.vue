@@ -31,18 +31,21 @@
         "
       >
         <div class="w-11/12 py-8">
+          <div v-if="isError" class="text-center text-red-700">
+            Error creating recipe
+          </div>
           <div class="flex justify-between items-center mb-4">
             <h2 class="capitalize text-xl text-gray-500 font-medium">
               create recipe
             </h2>
             <button
               class="text-xs text-gray-700 hover:bg-gray-400"
-              @click="props.handleModal(false)"
+              @click="props.onModalChange(false)"
             >
               Close
             </button>
           </div>
-          <form @submit.prevent="handleSubmit">
+          <form @submit.prevent="onSubmit">
             <fieldset class="mb-4">
               <label class="text-sm text-gray-400 mb-2 block">Title</label>
               <input
@@ -64,7 +67,7 @@
                 required
                 placeholder="rice, beans, ...."
                 class="w-full border border-gray-400 rounded-sm px-4"
-                v-model="form.ingredient"
+                v-model="form.ingredients"
               />
             </fieldset>
             <fieldset class="mb-4">
@@ -88,6 +91,7 @@
                 rounded-md
                 w-full
               "
+              :disabled="isLoading"
             >
               save
             </button>
@@ -99,7 +103,8 @@
 </template>
 
 <script setup>
-const props = defineProps(["handleModal"]);
+import { create } from "./utils";
+const props = defineProps(["onModalChange"]);
 
 //state
 const isLoading = ref(false);
@@ -107,11 +112,28 @@ const isError = ref(false);
 
 const form = reactive({
   title: "",
-  ingredient: "",
+  ingredients: "",
   direction: "",
 });
 
-const handleSubmit = () => {
-  //   console.log(form);
+const onSubmit = () => {
+  isLoading.value = true;
+  isError.value = false;
+
+  create({
+    title: form.title,
+    ingredients: form.ingredients,
+    direction: form.direction,
+  })
+    .then((res) => {
+      isLoading.value = false;
+      isError.value = false;
+      props.onModalChange(false);
+      window.location.reload();
+    })
+    .catch((_) => {
+      isLoading.value = false;
+      isError.value = true;
+    });
 };
 </script>
